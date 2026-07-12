@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Replication Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Sistemas Distribuidos · PostgreSQL WAL</p>
+                <h1><span aria-hidden="true">🐘</span> PostgreSQL Replication Dashboard</h1>
+                <p class="subtitle">Monitoreo, pruebas de lectura/escritura y control básico del clúster.</p>
+            </div>
+            <div class="hero-actions">
+                <button id="refreshButton" class="button button-primary">Actualizar</button>
+                <span id="lastUpdate" class="last-update">Sin actualizar</span>
+            </div>
+        </header>
+
+        <section id="warningBanner" class="warning-banner hidden"></section>
+
+        <section class="node-grid" aria-label="Estado de nodos">
+            {% for key, node in nodes.items() %}
+            <article class="node-card" id="card-{{ key }}" data-node="{{ key }}">
+                <div class="node-card-header">
+                    <div>
+                        <p class="node-kicker">{{ node.container }}</p>
+                        <h2>{{ node.label }}</h2>
+                    </div>
+                    <span class="status-pill status-loading" data-field="status-pill">Consultando</span>
+                </div>
+
+                <div class="role-line">
+                    <span class="status-dot" data-field="status-dot"></span>
+                    <strong data-field="role">Desconocido</strong>
+                </div>
+
+                <dl class="metrics">
+                    <div><dt>Docker</dt><dd data-field="docker">—</dd></div>
+                    <div><dt>Puerto</dt><dd>{{ node.port }}</dd></div>
+                    <div><dt>Solo lectura</dt><dd data-field="read-only">—</dd></div>
+                    <div><dt>Registros</dt><dd data-field="rows">—</dd></div>
+                    <div><dt>WAL / replay</dt><dd data-field="wal">—</dd></div>
+                    <div><dt>Retraso</dt><dd data-field="lag">—</dd></div>
+                </dl>
+
+                <p class="node-error" data-field="error"></p>
+
+                <div class="node-actions">
+                    <button class="button button-ghost" data-node-action="read" data-node="{{ key }}">Probar lectura</button>
+                    <button class="button button-ghost" data-node-action="write" data-node="{{ key }}">Probar escritura</button>
+                    <button class="button button-success" data-node-action="start" data-node="{{ key }}">Encender</button>
+                    <button class="button button-warning" data-node-action="restart" data-node="{{ key }}">Reiniciar</button>
+                    <button class="button button-danger" data-node-action="stop" data-node="{{ key }}">Detener</button>
+                    {% if key != 'master' %}
+                    <button class="button button-accent" data-node-action="promote" data-node="{{ key }}">Promover</button>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+
+        <section class="panel form-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Prueba de propagación</p>
+                    <h2>Registrar empleado en el primario actual</h2>
+                </div>
+                <button id="seedButton" class="button button-ghost">Cargar datos de ejemplo</button>
+            </div>
+
+            <form id="employeeForm" class="employee-form">
+                <label>
+                    <span>Nombre</span>
+                    <input id="nombre" name="nombre" maxlength="100" placeholder="Ej. Andrea" required>
+                </label>
+                <label>
+                    <span>Cargo</span>
+                    <input id="cargo" name="cargo" maxlength="100" placeholder="Ej. Analista" required>
+                </label>
+                <button class="button button-primary" type="submit">Registrar</button>
+            </form>
+            <p class="form-help">La aplicación detecta automáticamente cuál nodo acepta escrituras.</p>
+        </section>
+
+        <section class="panel replication-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">pg_stat_replication</p>
+                    <h2>Flujo WAL desde el primario</h2>
+                </div>
+                <button id="reconnectReplica2Button" class="button button-accent">Reconectar Réplica 2</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aplicación</th>
+                            <th>IP</th>
+                            <th>Estado</th>
+                            <th>Modo</th>
+                            <th>Sent LSN</th>
+                            <th>Replay LSN</th>
+                            <th>Pendiente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="replicationBody">
+                        <tr><td colspan="7" class="empty-state">Esperando datos…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="tables-grid">
+            {% for key, node in nodes.items() %}
+            <article class="data-panel">
+                <div class="data-panel-title">
+                    <h2>{{ node.label }}</h2>
+                    <span data-table-status="{{ key }}">Consultando…</span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Cargo</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-{{ key }}">
+                            <tr><td colspan="4" class="empty-state">Esperando datos…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+
+        <section class="panel log-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Registro local</p>
+                    <h2>Resultados de las pruebas</h2>
+                </div>
+                <button id="clearLogButton" class="button button-ghost">Limpiar</button>
+            </div>
+            <div id="activityLog" class="activity-log" aria-live="polite">
+                <p class="log-entry log-info">Dashboard iniciado.</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

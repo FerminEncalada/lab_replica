@@ -1,0 +1,103 @@
+# ==================================================
+# CREDENCIALES Y VARIABLES LOCALES
+# ==================================================
+.env
+**/.env
+
+# Los archivos de ejemplo sí se suben
+!.env.example
+!**/.env.example
+
+
+# ==================================================
+# ENTORNOS VIRTUALES Y PYTHON
+# ==================================================
+.venv/
+**/.venv/
+venv/
+**/venv/
+
+__pycache__/
+**/__pycache__/
+
+*.pyc
+*.pyo
+*.pyd
+
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+
+# ==================================================
+# DATOS LOCALES DE POSTGRESQL
+# ==================================================
+pgdata/
+**/pgdata/
+
+postgres/data/
+postgres/pgdata/
+
+*.db
+*.sqlite
+*.sqlite3
+
+
+# ==================================================
+# LOGS Y ARCHIVOS TEMPORALES
+# ==================================================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.pid
+
+
+# ==================================================
+# RESPALDOS Y COPIAS LOCALES
+# ==================================================
+api_respaldo/
+postgres_respaldo/
+respaldo/
+respaldos/
+backup/
+backups/
+
+*.bak
+*.backup
+*.old
+
+
+# ==================================================
+# ARCHIVOS COMPRIMIDOS GENERADOS
+# ==================================================
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+
+# ==================================================
+# VIDEOS DE EVIDENCIAS
+# ==================================================
+evidencias/**/*.mp4
+evidencias/**/*.mov
+evidencias/**/*.mkv
+evidencias/**/*.avi
+
+
+# ==================================================
+# EDITORES
+# ==================================================
+.vscode/
+.idea/
+
+
+# ==================================================
+# SISTEMA OPERATIVO
+# ==================================================
+.DS_Store
+Thumbs.db
